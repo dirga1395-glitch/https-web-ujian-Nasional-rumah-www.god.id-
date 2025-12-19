@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Ujian Online</title>
+<style>
+body{
+ font-family: Arial;
+ background:#f2f2f2;
+ padding:20px;
+}
+.box{
+ background:white;
+ padding:20px;
+ border-radius:10px;
+ max-width:520px;
+ margin:auto;
+}
+select, button{
+ width:100%;
+ padding:10px;
+ font-size:16px;
+ margin-bottom:10px;
+}
+#timer{
+ color:red;
+ font-weight:bold;
+ text-align:center;
+}
+#info{
+ color:blue;
+ font-weight:bold;
+ text-align:center;
+ margin-bottom:10px;
+}
+.soal{ margin-top:15px; }
+table{
+ width:100%;
+ border-collapse:collapse;
+ margin-top:10px;
+}
+th, td{
+ border:1px solid #aaa;
+ padding:6px;
+ text-align:center;
+}
+.rank{
+ background:#ffd700;
+ font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+<div class="box">
+<h2 style="text-align:center">Ujian Online</h2>
+
+<select id="kelas">
+ <option value="">-- Pilih Kelas --</option>
+ <option>7A</option>
+ <option>7B</option>
+</select>
+
+<select id="nama">
+ <option value="">-- Pilih Nama --</option>
+ <option>naura</option>
+ <option>naupa</option>
+ <option>keyza</option>
+ <option>tatok</option>
+ <option>raisa</option>
+ <option>lapor jika belum terdaftar nama anda pada no 815 4512 9476</option>
+</select>
+
+<div id="info"></div>
+<div id="timer">Waktu: 05:00</div>
+
+<button onclick="mulai()">Mulai Ujian</button>
+
+<div id="soal"></div>
+<div id="hasil"></div>
+
+<hr>
+
+<h3>📋 Rekap Nilai</h3>
+<table>
+<tr>
+ <th>No</th>
+ <th>Nama</th>
+ <th>Kelas</th>
+ <th>Nilai</th>
+</tr>
+<tbody id="rekap"></tbody>
+</table>
+
+<h3>🏆 Papan Peringkat</h3>
+<table>
+<tr>
+ <th>Rank</th>
+ <th>Nama</th>
+ <th>Kelas</th>
+ <th>Nilai</th>
+</tr>
+<tbody id="peringkat"></tbody>
+</table>
+</div>
+
+<script>
+// ========== SOAL 1–15 ==========
+const soal = [
+ {q:"1. 2 + 3 = ?", a:["4","5","6","7"], k:1},
+ {q:"2. 10 - 4 = ?", a:["5","6","7","8"], k:1},
+ {q:"3. 5 x 2 = ?", a:["7","8","9","10"], k:3},
+ {q:"4. 12 : 3 = ?", a:["2","3","4","5"], k:2},
+ {q:"5. 7 + 6 = ?", a:["11","12","13","14"], k:2},
+
+ {q:"6. Ibukota Indonesia?", a:["Bandung","Surabaya","Jakarta","Medan"], k:2},
+ {q:"7. Warna bendera Indonesia?", a:["Merah Biru","Putih Hijau","Merah Putih","Biru Putih"], k:2},
+ {q:"8. Hari kemerdekaan Indonesia?", a:["1 Mei","17 Agustus","20 Mei","10 November"], k:1},
+ {q:"9. 1 lusin sama dengan?", a:["10","11","12","13"], k:2},
+ {q:"10. Alat tulis di papan tulis?", a:["Pulpen","Pensil","Spidol","Kapur"], k:3},
+
+ {q:"11. 9 + 8 = ?", a:["15","16","17","18"], k:2},
+ {q:"12. 15 - 7 = ?", a:["6","7","8","9"], k:2},
+ {q:"13. 6 x 3 = ?", a:["15","16","17","18"], k:3},
+ {q:"14. 20 : 5 = ?", a:["2","3","4","5"], k:2},
+ {q:"15. Bahasa pemrograman web?", a:["HTML","Excel","Word","Paint"], k:0}
+];
+
+// ========== VARIABEL ==========
+let index = 0;
+let benar = 0;
+let waktu = 300;
+let timer;
+let dataRekap = [];
+
+// ========== MULAI ==========
+function mulai(){
+ if(kelas.value=="" || nama.value==""){
+  alert("Pilih kelas dan nama!");
+  return;
+ }
+ index = 0;
+ benar = 0;
+ waktu = 300;
+
+ info.innerHTML = `Kelas: ${kelas.value}<br>Nama: ${nama.value}`;
+ tampilSoal();
+
+ timer = setInterval(()=>{
+  waktu--;
+  timerDiv.innerHTML =
+   "Waktu: "+Math.floor(waktu/60)+":"+(waktu%60<10?"0":"")+waktu%60;
+  if(waktu<=0) selesai();
+ },1000);
+}
+const timerDiv = document.getElementById("timer");
+
+// ========== SOAL ==========
+function tampilSoal(){
+ let s = soal[index];
+ let html = `<div class="soal"><p>${s.q}</p>`;
+ s.a.forEach((j,i)=>{
+  html += `<label>
+   <input type="radio" name="jawab" onclick="jawab(${i})"> ${j}
+  </label><br>`;
+ });
+ html += "</div>";
+ soalDiv.innerHTML = html;
+}
+const soalDiv = document.getElementById("soal");
+
+// ========== JAWAB ==========
+function jawab(i){
+ if(i==soal[index].k) benar++;
+ index++;
+ index < soal.length ? tampilSoal() : selesai();
+}
+
+// ========== SELESAI ==========
+function selesai(){
+ clearInterval(timer);
+ soalDiv.innerHTML = "";
+ let nilai = Math.round((benar/soal.length)*100);
+ hasil.innerHTML = `Benar: ${benar}<br>Nilai: <b>${nilai}</b>`;
+
+ dataRekap.push({
+  nama:nama.value,
+  kelas:kelas.value,
+  nilai:nilai
+ });
+
+ tampilRekap();
+ tampilPeringkat();
+}
+
+// ========== REKAP ==========
+function tampilRekap(){
+ let html="";
+ dataRekap.forEach((d,i)=>{
+  html+=`
+  <tr>
+   <td>${i+1}</td>
+   <td>${d.nama}</td>
+   <td>${d.kelas}</td>
+   <td>${d.nilai}</td>
+  </tr>`;
+ });
+ document.getElementById("rekap").innerHTML = html;
+}
+
+// ========== PAPAN PERINGKAT ==========
+function tampilPeringkat(){
+ let urut = [...dataRekap].sort((a,b)=>b.nilai-a.nilai);
+ let html="";
+ urut.forEach((d,i)=>{
+  html+=`
+  <tr class="${i==0?'rank':''}">
+   <td>${i+1}</td>
+   <td>${d.nama}</td>
+   <td>${d.kelas}</td>
+   <td>${d.nilai}</td>
+  </tr>`;
+ });
+ document.getElementById("peringkat").innerHTML = html;
+}
+</script>
+
+</body>
+</html>
